@@ -877,46 +877,6 @@ module ENIP
     end
   end
  
-  class SendRRData
-	  attr_accessor :data 
-    def initialize(data)
- 			@data = data
-    end
-    def pack
-      r = ENIPBuffer.new
-      r.put(CIP_TYPE_UDINT, 0) # interface handle, shall be 0 for CIP
-      r.put(CIP_TYPE_UINT, 60) # timeout in seconds
-		  r << @data if ! @data.nil?
-      return r
-    end
-  end 
-
-  class Encapsulation
-	  attr_accessor :command, :session, :data 
-    def initialize(command, session, data)
-		  @command = command
-		  @session = session
-		  @data = data
-    end
-	  def pack
-      r = ENIPBuffer.new
-      r.put(CIP_TYPE_UINT, @command)
-      if data.nil?
-      	r.put(CIP_TYPE_UINT, 0)
-      else
-        r.put(CIP_TYPE_UINT, @data.length)
-      end
-      r.put(CIP_TYPE_UDINT, @session)
-      r.put(CIP_TYPE_UDINT, 0)                # status code
-      8.times { |i| r.put(CIP_TYPE_BYTE, 0) } # sender context
-      r.put(CIP_TYPE_UDINT, 0)                # options
-      if ! data.nil?
-		    r << @data
-      end
-      return r
-    end
-  end
-	
   class Identity
     attr_accessor :ip_address, :port
     def initialize(r)
