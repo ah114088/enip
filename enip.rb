@@ -269,6 +269,7 @@ module ENIP
       s
     end
   end
+
   def encapsulate command, session=0, data=nil
     request = PackBuffer.new
     request.put_uint command
@@ -286,6 +287,7 @@ module ENIP
     end
     request
   end
+
   def decapsulate reply
     command = reply.get_uint
     length = reply.get_uint
@@ -295,6 +297,88 @@ module ENIP
     options = reply.get_udint
     throw_encap_exception status
     [ command, length, session, options ]
+  end
+
+  # -------------------------------------------------------------
+
+  class Identity
+    attr_accessor :ip_address, :port
+    def initialize(r)
+      type = r.get_uint
+      len = r.get_uint
+      raise if type != 0x0C
+
+      @version = r.get_uint
+      sa = r.get_socket_address
+      @ip_address = sa[0]
+      @port = sa[1]
+      @vendor_id = r.get_uint
+      @device_type = r.get_uint
+      @product_code = r.get_uint
+      @revision_major = r.get_usint
+      @revision_minor = r.get_usint
+      @status = r.get_word
+      @serial_number = r.get_udint
+      @product_name = r.get_short_string
+      @state = r.get_usint
+    end
+    def print
+      puts "\tEncapsulation Protocol Version: #{@version}"
+      puts "\tSocket Address: #{@ip_address}:#{@port}"
+      puts "\tVendor ID: #{@vendor_id}"
+      puts "\tDevice Type: #{@device_type}"
+      puts "\tProduct Code: #{@product_code}"
+      puts "\tRevision: #{@revision_major}.#{@revision_minor}"
+      puts "\tStatus: #{@status}"
+      puts "\tSerial Number: #{@serial_number}"
+      puts "\tProduct Name: #{@product_name}"
+      puts "\tState: #{@state}"
+    end
+  end
+
+  class Service
+    CAP_TCP = 0x0020
+    CAP_UDP = 0x0100
+    def initialize(r)
+      type = 0
+      version = 0
+      cap = 0
+      name = 0
+
+      items = r.get_uint
+
+      items.times {
+        type     = r.get_uint
+        len      = r.get_uint
+        version  = r.get_uint
+        cap      = r.get_uint
+        name     = r[0, 16]
+        r.eat(16)
+      }
+
+      if type == 0x100
+        @capabilities = cap
+      else
+        raise "device has no communication service"
+      end
+    end
+    def print
+      if (@capabilities & CAP_TCP) == CAP_TCP
+        puts "   CIP over TCP"
+      end
+      if (@capabilities & CAP_UDP) == CAP_UDP
+        puts "   CIP over UDP"
+      end
+    end
+  end
+
+  class Interface
+    def initialize(r)
+      @ninterfaces = r.get_uint
+    end
+    def print
+      puts "\t#{@ninterfaces} interfaces"
+    end
   end
 
   # -------------------------------------------------------------
@@ -840,94 +924,6 @@ module ENIP
     end
   end
  
-  class Identity
-    attr_accessor :ip_address, :port
-    def initialize(r)
-      type = r.get_uint
-      len = r.get_uint
-      raise if type != 0x0C
-
-      @version = r.get_uint
-      sa = r.get_socket_address
-      @ip_address = sa[0]
-      @port = sa[1]
-      @vendor_id = r.get_uint
-      @device_type = r.get_uint
-      @product_code = r.get_uint
-      @revision_major = r.get_usint
-      @revision_minor = r.get_usint
-      @status = r.get_word
-      @serial_number = r.get_udint
-      @product_name = r.get_short_string
-      @state = r.get_usint
-    end
-    def print
-      puts "\tEncapsulation Protocol Version: #{@version}"
-      puts "\tSocket Address: #{@ip_address}:#{@port}"
-      puts "\tVendor ID: #{@vendor_id}"
-      puts "\tDevice Type: #{@device_type}"
-      puts "\tProduct Code: #{@product_code}"
-      puts "\tRevision: #{@revision_major}.#{@revision_minor}"
-      puts "\tStatus: #{@status}"
-      puts "\tSerial Number: #{@serial_number}"
-      puts "\tProduct Name: #{@product_name}"
-      puts "\tState: #{@state}"
-    end
-  end
-
-  class Service
-    CAP_TCP = 0x0020
-    CAP_UDP = 0x0100
-    def initialize(r)
-      type = 0
-      version = 0
-      cap = 0
-      name = 0
-
-      items = r.get_uint
-
-      items.times {
-        type     = r.get_uint
-        len      = r.get_uint
-        version  = r.get_uint
-        cap      = r.get_uint
-        name     = r[0, 16]
-        r.eat(16)
-      }
-
-      if type == 0x100
-        @capabilities = cap
-      else
-        raise "device has no communication service"
-      end
-    end
-    def print
-      if (@capabilities & CAP_TCP) == CAP_TCP
-        puts "   CIP over TCP"
-      end
-      if (@capabilities & CAP_UDP) == CAP_UDP
-        puts "   CIP over UDP"
-      end
-    end
-  end
-
-  class Interface
-    def initialize(r)
-      @ninterfaces = r.get_uint
-    end
-    def print
-      puts "\t#{@ninterfaces} interfaces"
-    end
-  end
-
-  class Assembly
-    attr_accessor :instance, :size
-    def initialize(instance, size)
-      @instance = instance
-      @size = size
-    end
-  end
-
   class ExclusiveOwnerRequest < ForwardOpenRequest
     def initialize rpi_msec, timeout_multiplier, unicast, isize, osize, iinstance, oinstance, cinstance
       super()
