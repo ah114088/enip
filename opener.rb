@@ -45,7 +45,7 @@ device_ip = ARGV[0]
 
 # ------------------------------------------------------------
 Kernel.srand
-ENIP.vendor_id = 1323      # Systeme Helmholz GmbH Vendor ID
+ENIP.vendor_id = 1323
 ENIP.serial_number = rand * 10000
 ENIP.block_io = false 
 
