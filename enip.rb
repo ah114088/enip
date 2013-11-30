@@ -17,8 +17,8 @@ module ENIP
   IMPLICIT_MESSAGING_PORT = 0x08AE # 2222
   EXPLICIT_MESSAGING_PORT = 0xAF12 # 44818
 
-	# module global variables
-	module_function
+  # module global variables
+  module_function
   def block_io; @block_io end
   def block_io= v; @block_io = v end
   def vendor_id; @vendor_id end
@@ -27,13 +27,13 @@ module ENIP
   def serial_number= s; @serial_number = s end
 
   def get_new_connection_serial_number 
-		if @csn.nil?
-			@csn = 1 
-		else
-			@csn += 1 
-		end	
-		return @csn
-	end
+    if @csn.nil?
+      @csn = 1 
+    else
+      @csn += 1 
+    end 
+    return @csn
+  end
 
   # general error code constants
   CIP_ERROR_SUCCESS                  = 0x00
@@ -98,11 +98,11 @@ module ENIP
   SERVICE_GET_CONNECTION_OWNER  = 0x5a
   
   class CIPException < StandardError
-		attr_reader :extended_status
-		def initialize(msg, extended_status)
-			super(msg)
-			@extended_status = extended_status
-		end
+    attr_reader :extended_status
+    def initialize(msg, extended_status)
+      super(msg)
+      @extended_status = extended_status
+    end
   end
   class ConnectionFailure < CIPException; end
   class PathDestinationUnknown < CIPException; end
@@ -142,8 +142,8 @@ module ENIP
     def put_word v ; put_val(v, "v") end
     def put_udint v ; put_val(v, "V") end
     def put_epath value
-			put_usint value.length >> 1
-			value.each { |c| put_byte c }
+      put_usint value.length >> 1
+      value.each { |c| put_byte c }
     end
     def put_sendrrdata data
       put_udint 0 # interface handle, shall be 0 for CIP
@@ -189,12 +189,12 @@ module ENIP
       val
     end
     def get_mac_addr
-			val = ""
-			6.times { |i|
-				val += "-" if i != 0 
-				val += sprintf("%02X", get_usint)
-			}
-			val
+      val = ""
+      6.times { |i|
+        val += "-" if i != 0 
+        val += sprintf("%02X", get_usint)
+      }
+      val
     end
     def get_interface # Network interface configuration
       ip_addr = get_udint
@@ -222,7 +222,7 @@ module ENIP
       return val
     end
     def get_epath
-			val = Epath.new
+      val = Epath.new
       psize = get_uint
       while psize > 0
         pident = get_usint
@@ -230,28 +230,28 @@ module ENIP
         when 0x20 # 8 bit class ID
           class_id = get_usint
           psize -= 1
-					val << pident
-					val << class_id
+          val << pident
+          val << class_id
 
         when 0x21 # 16 bit class ID
           eat(1) # pad byte
           class_id = get_uint
           psize -= 2
-					val << pident
-					val << class_id
+          val << pident
+          val << class_id
 
         when 0x24 # 8 bit instance Nr
           instance_nr = get_usint
           psize -= 1
-					val << pident
-					val << instance_nr
+          val << pident
+          val << instance_nr
 
         when 0x25 # 16 bit class ID
           eat(1) # pad byte
           instance_nr = get_uint
           psize -= 2
-					val << pident
-					val << instance_nr
+          val << pident
+          val << instance_nr
         else
           puts "path identifier not yet implemented"
         end
@@ -260,15 +260,15 @@ module ENIP
     end
   end
   class Epath < Array
-		def to_s
-			s = ""
-			self.each_with_index { |byte,i|
-				s += " " if i != 0	
-				s += sprintf("%02X", byte)
-			}
-			s
-		end
-	end
+    def to_s
+      s = ""
+      self.each_with_index { |byte,i|
+        s += " " if i != 0  
+        s += sprintf("%02X", byte)
+      }
+      s
+    end
+  end
   def encapsulate command, session=0, data=nil
     request = PackBuffer.new
     request.put_uint command
@@ -351,23 +351,23 @@ module ENIP
       items
     end
 
-		def send_request addr, command
+    def send_request addr, command
       request = ENIP.encapsulate command
       self.send(request, 0, addr, EXPLICIT_MESSAGING_PORT)
-		end
+    end
     def identity addr
-			send_request addr, COMMAND_LISTIDENTITY
+      send_request addr, COMMAND_LISTIDENTITY
       receive { |reply|
         reply.get_uint # ignore number
         Identity.new(reply)
       }
     end
     def services addr
-			send_request addr, COMMAND_LISTSERVICES
+      send_request addr, COMMAND_LISTSERVICES
       receive { |reply| Service.new(reply) }
     end
     def interfaces(addr)
-			send_request addr, COMMAND_LISTINTERFACES
+      send_request addr, COMMAND_LISTINTERFACES
       receive { |reply| Interface.new(reply) }
     end
   end
@@ -620,54 +620,54 @@ module ENIP
       raise ConnectionFailure.new("connection failure: " + ext, extended_status)
     when CIP_ERROR_PATH_DESTINATION_UNKNOWN
       raise PathDestinationUnknown.new("destination path references unknown object: " + ext, extended_status)
-		when CIP_ERROR_PATH_SEGMENT_ERROR
-		  raise PathSegmentError.new("path segment error: " + ext, extended_status)
-		when CIP_ERROR_SERVICE_NOT_SUPPORTED
-		  raise ServiceNotSupported.new("service not supported: " + ext, extended_status)
-		when CIP_ERROR_ATTRIBUTE_NOT_SETTABLE
-		  raise AttributeNotSettable.new("attribute not settable: " + ext, extended_status)
-		when CIP_ERROR_DEVICE_STATE_CONFLICT
-		  raise DeviceStateConflict.new("device state conflict: " + ext, extended_status)
-		when CIP_ERROR_NOT_ENOUGH_DATA
-		  raise NotEnoughData.new("not enough data: " + ext, extended_status)
+    when CIP_ERROR_PATH_SEGMENT_ERROR
+      raise PathSegmentError.new("path segment error: " + ext, extended_status)
+    when CIP_ERROR_SERVICE_NOT_SUPPORTED
+      raise ServiceNotSupported.new("service not supported: " + ext, extended_status)
+    when CIP_ERROR_ATTRIBUTE_NOT_SETTABLE
+      raise AttributeNotSettable.new("attribute not settable: " + ext, extended_status)
+    when CIP_ERROR_DEVICE_STATE_CONFLICT
+      raise DeviceStateConflict.new("device state conflict: " + ext, extended_status)
+    when CIP_ERROR_NOT_ENOUGH_DATA
+      raise NotEnoughData.new("not enough data: " + ext, extended_status)
     when CIP_ERROR_ATTRIBUTE_NOT_SUPPORTED
-		  raise AttributeNotSupported.new("attribute not supported: " + ext, extended_status)
+      raise AttributeNotSupported.new("attribute not supported: " + ext, extended_status)
     when CIP_ERROR_TOO_MUCH_DATA
       raise TooMuchData.new("too much data: " + ext, extended_status)
     when CIP_ERROR_OBJECT_DOES_NOT_EXIST
-		  raise ObjectDoesNotExist.new("object does not exist: " + ext, extended_status)
+      raise ObjectDoesNotExist.new("object does not exist: " + ext, extended_status)
     when CIP_ERROR_INVALID_PARAMETER
-		  raise InvalidParameter.new("invalid parameter: " + ext, extended_status)
-		else
-		  raise NotYetImplemented.new("not yet implemented CIP exception with error code #{error_code}", extended_status)
+      raise InvalidParameter.new("invalid parameter: " + ext, extended_status)
+    else
+      raise NotYetImplemented.new("not yet implemented CIP exception with error code #{error_code}", extended_status)
     end
   end
 
-	def ENIP.throw_encap_exception(status)
-		case status
+  def ENIP.throw_encap_exception(status)
+    case status
     when 1
-			raise EncapInvalidCommand
-		when 2
-			raise EncapInsufficientMemory
-		when 3
-			raise EncapIncorrectData
-		when 0x64
-			raise EncapInvalidSessionHandle
+      raise EncapInvalidCommand
+    when 2
+      raise EncapInsufficientMemory
+    when 3
+      raise EncapIncorrectData
+    when 0x64
+      raise EncapInvalidSessionHandle
     when 0x65
-			raise EncapInvalidLength
+      raise EncapInvalidLength
     when 0x69
-			raise EncapUnsupportedProtocol
+      raise EncapUnsupportedProtocol
     end 
   end
 
   class ForwardOpenRequest
-		attr_accessor :connection_type
-	  attr_accessor :priority_time_tick, :timeout_ticks, :o2t_network_connection_id, :t2o_network_connection_id, 
+    attr_accessor :connection_type
+    attr_accessor :priority_time_tick, :timeout_ticks, :o2t_network_connection_id, :t2o_network_connection_id, 
                   :connection_serial_number, :connection_timeout_multiplier, 
-									:o2t_rpi, :o2t_network_connection_params, :t2o_rpi, :t2o_network_connection_params, 
+                  :o2t_rpi, :o2t_network_connection_params, :t2o_rpi, :t2o_network_connection_params, 
                   :transport_type, :connection_path
     def initialize
-			@priority_time_tick = @timeout_ticks = @o2t_network_connection_id = @t2o_network_connection_id = 0
+      @priority_time_tick = @timeout_ticks = @o2t_network_connection_id = @t2o_network_connection_id = 0
       @connection_serial_number = @connection_timeout_multiplier = 0
       @o2t_rpi = @o2t_network_connection_params = @t2o_rpi = @t2o_network_connection_params = 0
       @transport_type = 0
@@ -691,7 +691,7 @@ module ENIP
       r.put_word @t2o_network_connection_params
       r.put_byte @transport_type
       r.put_epath @connection_path
-			r
+      r
     end
   end
 
@@ -786,7 +786,7 @@ module ENIP
     # EPATH_CONNECTION_MANAGER = [ 0x20, 0x06, 0x24, 0x01 ]
     # EPATH_IDENTITY = [ 0x20, 0x06, 0x24, 0x01 ]
 
-	  attr_accessor :service, :epath, :request_data 
+    attr_accessor :service, :epath, :request_data 
     def initialize(service, epath, request_data)
       @service = service 
       @epath = epath 
@@ -918,317 +918,317 @@ module ENIP
     def print
       puts "\t#{@ninterfaces} interfaces"
     end
-	end
+  end
 
-	class Assembly
-		attr_accessor :instance, :size
-		def initialize(instance, size)
-			@instance = instance
-			@size = size
-		end
-	end
+  class Assembly
+    attr_accessor :instance, :size
+    def initialize(instance, size)
+      @instance = instance
+      @size = size
+    end
+  end
 
-	class ExclusiveOwnerRequest < ForwardOpenRequest
-		def initialize rpi_msec, timeout_multiplier, unicast, isize, osize, iinstance, oinstance, cinstance
-			super()
-			@connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
-			@connection_serial_number = ENIP.get_new_connection_serial_number
-			@o2t_rpi = rpi_msec * 1000
-			@t2o_rpi = rpi_msec * 1000
-			@connection_timeout_multiplier = timeout_multiplier 
-			@o2t_network_connection_params =
-				(2 << 13) |        # Connection Type = POINT2POINT,
-				(2 << 10) |        # Priority = SCHEDULED
-				(0 << 9)  |        # Use fixed size
-				((osize + 2 + 4) << 0) # Connection size in bytes
-			
-			@t2o_network_connection_params =
-				(2 << 10) |        # Priority = SCHEDULED
-				(0 << 9)  |        # Use fixed size
-				((isize + 2) << 0)     # Connection size in bytes
-			if unicast 
-				@t2o_network_connection_params |=  (2 << 13)   # Connection Type = POINT2POINT
-			else
-				@t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
-			end 
-			@transport_type                = 0x01  # direction: client, production trigger: cyclic, transport class: 1 
-			@t2o_network_connection_id = rand * 1000
-		end
-	end
+  class ExclusiveOwnerRequest < ForwardOpenRequest
+    def initialize rpi_msec, timeout_multiplier, unicast, isize, osize, iinstance, oinstance, cinstance
+      super()
+      @connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
+      @connection_serial_number = ENIP.get_new_connection_serial_number
+      @o2t_rpi = rpi_msec * 1000
+      @t2o_rpi = rpi_msec * 1000
+      @connection_timeout_multiplier = timeout_multiplier 
+      @o2t_network_connection_params =
+        (2 << 13) |        # Connection Type = POINT2POINT,
+        (2 << 10) |        # Priority = SCHEDULED
+        (0 << 9)  |        # Use fixed size
+        ((osize + 2 + 4) << 0) # Connection size in bytes
+      
+      @t2o_network_connection_params =
+        (2 << 10) |        # Priority = SCHEDULED
+        (0 << 9)  |        # Use fixed size
+        ((isize + 2) << 0)     # Connection size in bytes
+      if unicast 
+        @t2o_network_connection_params |=  (2 << 13)   # Connection Type = POINT2POINT
+      else
+        @t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
+      end 
+      @transport_type                = 0x01  # direction: client, production trigger: cyclic, transport class: 1 
+      @t2o_network_connection_id = rand * 1000
+    end
+  end
 
-	class InputOnlyRequest < ForwardOpenRequest
-		def initialize rpi_msec, timeout_multiplier, unicast, isize, iinstance, oinstance, cinstance
-			super()
-			@connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
-			@connection_serial_number = ENIP.get_new_connection_serial_number
-			@o2t_rpi = rpi_msec * 1000
-			@t2o_rpi = rpi_msec * 1000
-			@connection_timeout_multiplier = timeout_multiplier 
-			@o2t_network_connection_params =
-				(2 << 13) |        # Connection Type = POINT2POINT,
-				(2 << 10) |        # Priority = SCHEDULED
-				(0 << 9)  |        # Use fixed size
-				(2  << 0)          # Connection size in bytes
-			@t2o_network_connection_params =
-				(2 << 10) |        # Priority = SCHEDULED
-				(0 << 9)  |        # Use fixed size
-				((isize + 2) << 0)     # Connection size in bytes
-			if unicast 
-				@t2o_network_connection_params |=  (2 << 13)   # Connection Type = POINT2POINT
-			else
-				@t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
-			end 
-			@transport_type                = 0x01  # direction: client, production trigger: cyclic, transport class: 1 
-			@t2o_network_connection_id = rand * 1000
-		end
-	end
+  class InputOnlyRequest < ForwardOpenRequest
+    def initialize rpi_msec, timeout_multiplier, unicast, isize, iinstance, oinstance, cinstance
+      super()
+      @connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
+      @connection_serial_number = ENIP.get_new_connection_serial_number
+      @o2t_rpi = rpi_msec * 1000
+      @t2o_rpi = rpi_msec * 1000
+      @connection_timeout_multiplier = timeout_multiplier 
+      @o2t_network_connection_params =
+        (2 << 13) |        # Connection Type = POINT2POINT,
+        (2 << 10) |        # Priority = SCHEDULED
+        (0 << 9)  |        # Use fixed size
+        (2  << 0)          # Connection size in bytes
+      @t2o_network_connection_params =
+        (2 << 10) |        # Priority = SCHEDULED
+        (0 << 9)  |        # Use fixed size
+        ((isize + 2) << 0)     # Connection size in bytes
+      if unicast 
+        @t2o_network_connection_params |=  (2 << 13)   # Connection Type = POINT2POINT
+      else
+        @t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
+      end 
+      @transport_type                = 0x01  # direction: client, production trigger: cyclic, transport class: 1 
+      @t2o_network_connection_id = rand * 1000
+    end
+  end
 
-	class ListenOnlyRequest < ForwardOpenRequest
-		def initialize rpi_msec, timeout_multiplier, isize, iinstance, oinstance, cinstance
-			super()
-			@connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
-			@connection_serial_number = ENIP.get_new_connection_serial_number
-			@o2t_rpi = rpi_msec * 1000
-			@t2o_rpi = rpi_msec * 1000
-			@connection_timeout_multiplier = timeout_multiplier 
-			@o2t_network_connection_params =
-				(2 << 13) |        # Connection Type = POINT2POINT,
-				(2 << 10) |        # Priority = SCHEDULED
-				(0 << 9)  |        # Use fixed size
-				(2 << 0)           # Connection size in bytes
-			@t2o_network_connection_params =
-				(2 << 10) |        # Priority = SCHEDULED
-				(0 << 9)  |        # Use fixed size
-				((isize + 2) << 0)     # Connection size in bytes
-			@t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
-			@transport_type                = 0x01  # direction: client, production trigger: cyclic, transport class: 1 
-			@t2o_network_connection_id = rand * 1000
-		end
-	end
+  class ListenOnlyRequest < ForwardOpenRequest
+    def initialize rpi_msec, timeout_multiplier, isize, iinstance, oinstance, cinstance
+      super()
+      @connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
+      @connection_serial_number = ENIP.get_new_connection_serial_number
+      @o2t_rpi = rpi_msec * 1000
+      @t2o_rpi = rpi_msec * 1000
+      @connection_timeout_multiplier = timeout_multiplier 
+      @o2t_network_connection_params =
+        (2 << 13) |        # Connection Type = POINT2POINT,
+        (2 << 10) |        # Priority = SCHEDULED
+        (0 << 9)  |        # Use fixed size
+        (2 << 0)           # Connection size in bytes
+      @t2o_network_connection_params =
+        (2 << 10) |        # Priority = SCHEDULED
+        (0 << 9)  |        # Use fixed size
+        ((isize + 2) << 0)     # Connection size in bytes
+      @t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
+      @transport_type                = 0x01  # direction: client, production trigger: cyclic, transport class: 1 
+      @t2o_network_connection_id = rand * 1000
+    end
+  end
 
-	class Connection
-		attr_accessor :idata, :rpi, :timeout_multiplier, :timeout
-		attr_accessor :next_send, :last_recv, :o2t_network_connection_id, :t2o_network_connection_id
-		attr_accessor :ip_addr, :unicast, :multicast_addr
-		attr_accessor :producing_seqno, :consuming_seqno
-		def initialize session, ip_addr, unicast, rpi, fo_request
-			now = Time.now
-			@session = session
-			@producing_seqno = 0
-			@consuming_seqno = 0
-			@ip_addr = ip_addr
-			@rpi = rpi
-			@next_send = now + rpi.to_f / 1000
-			@last_recv = now
-			@timeout = false
-			@unicast = unicast
-			@timeout_multiplier = fo_request.connection_timeout_multiplier
-			@connection_path = fo_request.connection_path
-			@connection_serial_number = fo_request.connection_serial_number
+  class Connection
+    attr_accessor :idata, :rpi, :timeout_multiplier, :timeout
+    attr_accessor :next_send, :last_recv, :o2t_network_connection_id, :t2o_network_connection_id
+    attr_accessor :ip_addr, :unicast, :multicast_addr
+    attr_accessor :producing_seqno, :consuming_seqno
+    def initialize session, ip_addr, unicast, rpi, fo_request
+      now = Time.now
+      @session = session
+      @producing_seqno = 0
+      @consuming_seqno = 0
+      @ip_addr = ip_addr
+      @rpi = rpi
+      @next_send = now + rpi.to_f / 1000
+      @last_recv = now
+      @timeout = false
+      @unicast = unicast
+      @timeout_multiplier = fo_request.connection_timeout_multiplier
+      @connection_path = fo_request.connection_path
+      @connection_serial_number = fo_request.connection_serial_number
 
-			fo_reply = @session.connection_manager[1].forward_open fo_request
-			@o2t_network_connection_id = fo_reply.o2t_network_connection_id
-			@t2o_network_connection_id = fo_reply.t2o_network_connection_id
-			if ! unicast
-				@multicast_addr = fo_reply.t2o_sockaddr[0].to_s
-			end
-		end
-		def close
-			fc_request = ENIP::ForwardCloseRequest.new
-			fc_request.connection_path = @connection_path
-			fc_request.connection_serial_number  = @connection_serial_number
-			@session.connection_manager[1].forward_close fc_request
-		end
-	end
+      fo_reply = @session.connection_manager[1].forward_open fo_request
+      @o2t_network_connection_id = fo_reply.o2t_network_connection_id
+      @t2o_network_connection_id = fo_reply.t2o_network_connection_id
+      if ! unicast
+        @multicast_addr = fo_reply.t2o_sockaddr[0].to_s
+      end
+    end
+    def close
+      fc_request = ENIP::ForwardCloseRequest.new
+      fc_request.connection_path = @connection_path
+      fc_request.connection_serial_number  = @connection_serial_number
+      @session.connection_manager[1].forward_close fc_request
+    end
+  end
 
-	# --------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
 
-	class BinString < String
-		def initialize size, val=0
-			super()
-			size.times { self << val.chr }
-		end
-	end
+  class BinString < String
+    def initialize size, val=0
+      super()
+      size.times { self << val.chr }
+    end
+  end
 
-	# --------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
 
-	class ExclusiveOwnerConnection < Connection
-		attr_accessor :run, :odata
-		def initialize session, ip_addr, rpi, timeout_multiplier, unicast, isize, 
-										osize, iinstance, oinstance, cinstance
-			@run = false
-			@odata = BinString.new(osize)
-			@producing_seqno = 1
-			fo_request = ExclusiveOwnerRequest.new rpi, timeout_multiplier, unicast,
-						isize, osize, iinstance, oinstance, cinstance
-			super session, ip_addr, unicast, rpi, fo_request
-		end
-	end
+  class ExclusiveOwnerConnection < Connection
+    attr_accessor :run, :odata
+    def initialize session, ip_addr, rpi, timeout_multiplier, unicast, isize, 
+                    osize, iinstance, oinstance, cinstance
+      @run = false
+      @odata = BinString.new(osize)
+      @producing_seqno = 1
+      fo_request = ExclusiveOwnerRequest.new rpi, timeout_multiplier, unicast,
+            isize, osize, iinstance, oinstance, cinstance
+      super session, ip_addr, unicast, rpi, fo_request
+    end
+  end
 
-	# --------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
 
-	class InputOnlyConnection < Connection
-		def initialize session, ip_addr, rpi, timeout_multiplier, unicast, isize,
-						iinstance, oinstance, cinstance
-			fo_request = InputOnlyRequest.new rpi, timeout_multiplier, unicast,
-						isize, iinstance, oinstance, cinstance
-			super session, ip_addr, unicast, rpi, fo_request
-		end
-	end
+  class InputOnlyConnection < Connection
+    def initialize session, ip_addr, rpi, timeout_multiplier, unicast, isize,
+            iinstance, oinstance, cinstance
+      fo_request = InputOnlyRequest.new rpi, timeout_multiplier, unicast,
+            isize, iinstance, oinstance, cinstance
+      super session, ip_addr, unicast, rpi, fo_request
+    end
+  end
 
-	# --------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
 
-	class ListenOnlyConnection < Connection
-		def initialize session, ip_addr, rpi, timeout_multiplier, isize,
-						iinstance, oinstance, cinstance
-			fo_request = ListenOnlyRequest.new rpi, timeout_multiplier, isize, 
-						iinstance, oinstance, cinstance
-			super session, ip_addr, true, rpi, fo_request
-		end
-	end
+  class ListenOnlyConnection < Connection
+    def initialize session, ip_addr, rpi, timeout_multiplier, isize,
+            iinstance, oinstance, cinstance
+      fo_request = ListenOnlyRequest.new rpi, timeout_multiplier, isize, 
+            iinstance, oinstance, cinstance
+      super session, ip_addr, true, rpi, fo_request
+    end
+  end
 
-	# --------------------------------------------------------------------------
+  # --------------------------------------------------------------------------
 
-	class ConnectionMultiplexerException < StandardError ; end
-	class ConnectionTimeout < ConnectionMultiplexerException ; end
+  class ConnectionMultiplexerException < StandardError ; end
+  class ConnectionTimeout < ConnectionMultiplexerException ; end
 
-	class ConnectionMultiplexer < Array
-		attr_accessor :trace
-		def initialize
-			@udp_socket = UDPSocket.open
-			begin
-				@udp_socket.bind(Socket::INADDR_ANY, IMPLICIT_MESSAGING_PORT)
+  class ConnectionMultiplexer < Array
+    attr_accessor :trace
+    def initialize
+      @udp_socket = UDPSocket.open
+      begin
+        @udp_socket.bind(Socket::INADDR_ANY, IMPLICIT_MESSAGING_PORT)
 
-			rescue Errno::EADDRINUSE
-				STDERR.puts "implicit messaging port #{IMPLICIT_MESSAGING_PORT} in use ..."
-				GC.start
-				sleep 0.5
-				retry
-			end
-			@mcast = Array.new
-			@trace = false
-		end
-		def close
-			@udp_socket.close
-		end
-		# add connection
-		def << c
-			super c
-			if ! c.unicast
-				new_addr = true
-				@mcast.each { |m|
-					if m[0] == c.multicast_addr
-						new_addr = false
-						m[1] += 1
-					end
-				}
+      rescue Errno::EADDRINUSE
+        STDERR.puts "implicit messaging port #{IMPLICIT_MESSAGING_PORT} in use ..."
+        GC.start
+        sleep 0.5
+        retry
+      end
+      @mcast = Array.new
+      @trace = false
+    end
+    def close
+      @udp_socket.close
+    end
+    # add connection
+    def << c
+      super c
+      if ! c.unicast
+        new_addr = true
+        @mcast.each { |m|
+          if m[0] == c.multicast_addr
+            new_addr = false
+            m[1] += 1
+          end
+        }
 
-				if new_addr
-					# STDERR.puts "setsockopt(ADD,#{c.multicast_addr})"
-					ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
-					@udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, ip)
-					@mcast << [ c.multicast_addr, 1 ]
-				end
-			end
-		end
-		# delete connection
-		def delete c
-			c.close
-			if ! c.unicast
-				@mcast.each { |m|
-					if m[0] == c.multicast_addr
-						m[1] -= 1
-						if m[1] == 0
-							# STDERR.puts "setsockopt(DEL,#{c.multicast_addr})"
-							ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
-							@udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_DROP_MEMBERSHIP, ip)
-							@mcast.delete [ c.multicast_addr, 0 ]
-							break
-						end
-					end
-				}
-			end
-			super c
-		end
-		def recv
-			start = Time.now
-			udp_packet = @udp_socket.recvfrom_nonblock(1024)
-			msg = ENIP::PackBuffer.new(udp_packet[0])
-			cpf = ENIP::CommonPacket.new
-			cpf.unpack msg
+        if new_addr
+          # STDERR.puts "setsockopt(ADD,#{c.multicast_addr})"
+          ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
+          @udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, ip)
+          @mcast << [ c.multicast_addr, 1 ]
+        end
+      end
+    end
+    # delete connection
+    def delete c
+      c.close
+      if ! c.unicast
+        @mcast.each { |m|
+          if m[0] == c.multicast_addr
+            m[1] -= 1
+            if m[1] == 0
+              # STDERR.puts "setsockopt(DEL,#{c.multicast_addr})"
+              ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
+              @udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_DROP_MEMBERSHIP, ip)
+              @mcast.delete [ c.multicast_addr, 0 ]
+              break
+            end
+          end
+        }
+      end
+      super c
+    end
+    def recv
+      start = Time.now
+      udp_packet = @udp_socket.recvfrom_nonblock(1024)
+      msg = ENIP::PackBuffer.new(udp_packet[0])
+      cpf = ENIP::CommonPacket.new
+      cpf.unpack msg
 
-			addr_data = cpf.get_item_of_type(ENIP::CPF_TYPE_SEQUENCED_ADDRESS)
-			connid = addr_data.get_udint
-			seqno = addr_data.get_udint
+      addr_data = cpf.get_item_of_type(ENIP::CPF_TYPE_SEQUENCED_ADDRESS)
+      connid = addr_data.get_udint
+      seqno = addr_data.get_udint
 
-			self.each { |c|
-				next if c.t2o_network_connection_id != connid
-				if seqno != c.consuming_seqno 
-					c.idata = cpf.get_item_of_type(ENIP::CPF_TYPE_CONNECTED_DATA)
-					c.consuming_seqno = seqno
-				end
-				STDERR.puts "recv #{c.idata.length} bytes connid: #{connid} " \
-					"seqno: #{seqno} took: #{sprintf("%5.3f", Time.now - start)} s" if @trace
+      self.each { |c|
+        next if c.t2o_network_connection_id != connid
+        if seqno != c.consuming_seqno 
+          c.idata = cpf.get_item_of_type(ENIP::CPF_TYPE_CONNECTED_DATA)
+          c.consuming_seqno = seqno
+        end
+        STDERR.puts "recv #{c.idata.length} bytes connid: #{connid} " \
+          "seqno: #{seqno} took: #{sprintf("%5.3f", Time.now - start)} s" if @trace
 
-				c.last_recv = Time.now
-				# break
-			}
-		end
-		def send c
-			c.producing_seqno += 1
+        c.last_recv = Time.now
+        # break
+      }
+    end
+    def send c
+      c.producing_seqno += 1
 
-			addr_data = ENIP::PackBuffer.new
-			addr_data.put_udint c.o2t_network_connection_id
-			addr_data.put_udint c.producing_seqno
-			data = ENIP::PackBuffer.new
-			data.put_uint c.producing_seqno
+      addr_data = ENIP::PackBuffer.new
+      addr_data.put_udint c.o2t_network_connection_id
+      addr_data.put_udint c.producing_seqno
+      data = ENIP::PackBuffer.new
+      data.put_uint c.producing_seqno
 
-			if c.is_a? ExclusiveOwnerConnection
-				header32bit = c.run ? 1 << 0 : 0
-				data.put_udint header32bit
-				data << c.odata
-				bytes = c.odata.length
-			else
-				bytes = 0
-			end
+      if c.is_a? ExclusiveOwnerConnection
+        header32bit = c.run ? 1 << 0 : 0
+        data.put_udint header32bit
+        data << c.odata
+        bytes = c.odata.length
+      else
+        bytes = 0
+      end
 
-			cpf = ENIP::CommonPacket.new
-			cpf << [ ENIP::CPF_TYPE_SEQUENCED_ADDRESS, addr_data]
-			cpf << [ ENIP::CPF_TYPE_CONNECTED_DATA, data]
-			@udp_socket.send(cpf.pack, 0, c.ip_addr, ENIP::IMPLICIT_MESSAGING_PORT)
-			STDERR.puts "send #{bytes} bytes for connid: #{c.o2t_network_connection_id} seqno: #{c.producing_seqno}" if @trace
-		end
-		def interval
-			begin
-				recv 
-			rescue Errno::EAGAIN, Errno::EWOULDBLOCK
-			end
+      cpf = ENIP::CommonPacket.new
+      cpf << [ ENIP::CPF_TYPE_SEQUENCED_ADDRESS, addr_data]
+      cpf << [ ENIP::CPF_TYPE_CONNECTED_DATA, data]
+      @udp_socket.send(cpf.pack, 0, c.ip_addr, ENIP::IMPLICIT_MESSAGING_PORT)
+      STDERR.puts "send #{bytes} bytes for connid: #{c.o2t_network_connection_id} seqno: #{c.producing_seqno}" if @trace
+    end
+    def interval
+      begin
+        recv 
+      rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+      end
 
-			self.each { |c| 
-				next if c.timeout == true
-				passed_time = Time.now - c.last_recv 
-				if passed_time > c.rpi.to_f/1000 * (4 << c.timeout_multiplier)
-					c.timeout = true	
-					STDERR.puts "connid #{c.t2o_network_connection_id} timed out by #{passed_time}"
-					raise ConnectionTimeout, "connid #{c.t2o_network_connection_id} timed out by #{passed_time}"
-				end
-			}
+      self.each { |c| 
+        next if c.timeout == true
+        passed_time = Time.now - c.last_recv 
+        if passed_time > c.rpi.to_f/1000 * (4 << c.timeout_multiplier)
+          c.timeout = true  
+          STDERR.puts "connid #{c.t2o_network_connection_id} timed out by #{passed_time}"
+          raise ConnectionTimeout, "connid #{c.t2o_network_connection_id} timed out by #{passed_time}"
+        end
+      }
 
-			self.each { |c| 
-				if !c.timeout && c.next_send <= Time.now
-					send c
-					c.next_send = Time.now + c.rpi.to_f / 1000
-					# puts "next_send: #{sprintf("%5.3f", c.next_send.to_f)}"
-				end
-			}
-			sleep 0.0005
-		end
-		def run sec
-			start = Time.now
-			interval while Time.now - start < sec
-		end
-		def forever
-			interval while true 
-		end
-	end
+      self.each { |c| 
+        if !c.timeout && c.next_send <= Time.now
+          send c
+          c.next_send = Time.now + c.rpi.to_f / 1000
+          # puts "next_send: #{sprintf("%5.3f", c.next_send.to_f)}"
+        end
+      }
+      sleep 0.0005
+    end
+    def run sec
+      start = Time.now
+      interval while Time.now - start < sec
+    end
+    def forever
+      interval while true 
+    end
+  end
 end

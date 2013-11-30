@@ -2,6 +2,10 @@
 
 require 'enip.rb'
 
+#
+# Assemblies of the OpENer sample application
+# https://github.com/pjkundert/OpENer
+
 INPUT_ASSEMBLY_NUM                = 100
 OUTPUT_ASSEMBLY_NUM               = 150
 CONFIG_ASSEMBLY_NUM               = 151
@@ -12,34 +16,34 @@ INPUT_ASSEMBLY_SIZE               = 32
 OUTPUT_ASSEMBLY_SIZE              = 32
 
 class ExclusiveOwnerConnection < ENIP::ExclusiveOwnerConnection
-	def initialize session, ip_addr, rpi, timeout_multiplier, unicast
-		super(session, ip_addr, rpi, timeout_multiplier, unicast, 
-					INPUT_ASSEMBLY_SIZE, OUTPUT_ASSEMBLY_SIZE, 
-					INPUT_ASSEMBLY_NUM, OUTPUT_ASSEMBLY_NUM, CONFIG_ASSEMBLY_NUM)
-	end
+  def initialize session, ip_addr, rpi, timeout_multiplier, unicast
+    super(session, ip_addr, rpi, timeout_multiplier, unicast, 
+          INPUT_ASSEMBLY_SIZE, OUTPUT_ASSEMBLY_SIZE, 
+          INPUT_ASSEMBLY_NUM, OUTPUT_ASSEMBLY_NUM, CONFIG_ASSEMBLY_NUM)
+  end
 end
 
 class InputOnlyConnection < ENIP::InputOnlyConnection
-	def initialize session, ip_addr, rpi, timeout_multiplier, unicast
-		super(session, ip_addr, rpi, timeout_multiplier, unicast, 
-					INPUT_ASSEMBLY_SIZE, INPUT_ASSEMBLY_NUM, 
-				HEARBEAT_INPUT_ONLY_ASSEMBLY_NUM, CONFIG_ASSEMBLY_NUM)
-	end
+  def initialize session, ip_addr, rpi, timeout_multiplier, unicast
+    super(session, ip_addr, rpi, timeout_multiplier, unicast, 
+          INPUT_ASSEMBLY_SIZE, INPUT_ASSEMBLY_NUM, 
+        HEARBEAT_INPUT_ONLY_ASSEMBLY_NUM, CONFIG_ASSEMBLY_NUM)
+  end
 end
 
 class ListenOnlyConnection < ENIP::ListenOnlyConnection
-	def initialize session, ip_addr, rpi, timeout_multiplier
-		super(session, ip_addr, rpi, timeout_multiplier,
-					INPUT_ASSEMBLY_SIZE, INPUT_ASSEMBLY_NUM, 
-				HEARBEAT_LISTEN_ONLY_ASSEMBLY_NUM, CONFIG_ASSEMBLY_NUM)
-	end
+  def initialize session, ip_addr, rpi, timeout_multiplier
+    super(session, ip_addr, rpi, timeout_multiplier,
+          INPUT_ASSEMBLY_SIZE, INPUT_ASSEMBLY_NUM, 
+        HEARBEAT_LISTEN_ONLY_ASSEMBLY_NUM, CONFIG_ASSEMBLY_NUM)
+  end
 end
 
 # ------------------------------------------------------------
 
 if ARGV.length != 1
-	puts "usage: opener.rb <device_ip>" 
-	exit 1
+  puts "usage: opener.rb <device_ip>" 
+  exit 1
 end
 device_ip = ARGV[0]
 
@@ -81,7 +85,7 @@ session.identity[1].reset 0
 #
 puts session.assembly[INPUT_ASSEMBLY_NUM].read.unpack("H*")
 session.assembly[OUTPUT_ASSEMBLY_NUM].write ENIP::BinString.new(OUTPUT_ASSEMBLY_SIZE)
-	
+  
 # 
 # Identity object attributes
 #
