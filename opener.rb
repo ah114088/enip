@@ -120,11 +120,10 @@ puts "speed #{session.ethernet_link[1].interface_speed}"
 puts "flags: #{session.ethernet_link[1].interface_flags}"
 puts "mac address: #{session.ethernet_link[1].physical_address}"
 
-cm = ENIP::ConnectionManager.new
-cm.trace = false
+cm = ENIP::ConnectionMultiplexer.new
 
-rpi = 100
-ucast = false
+rpi = 100 # 100 ms
+ucast = false # multicast
 
 # 
 # Input Only CIP connection

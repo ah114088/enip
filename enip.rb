@@ -1089,10 +1089,10 @@ module ENIP
 
 	# --------------------------------------------------------------------------
 
-	class ConnectionManagerException < StandardError ; end
-	class ConnectionTimeout < ConnectionManagerException ; end
+	class ConnectionMultiplexerException < StandardError ; end
+	class ConnectionTimeout < ConnectionMultiplexerException ; end
 
-	class ConnectionManager < Array
+	class ConnectionMultiplexer < Array
 		attr_accessor :trace
 		def initialize
 			@udp_socket = UDPSocket.open
@@ -1177,16 +1177,14 @@ module ENIP
 		def send c
 			c.producing_seqno += 1
 
-			if c.is_a? ExclusiveOwnerConnection
-				header32bit = c.run ? 1 << 0 : 0
-			end
-
 			addr_data = ENIP::PackBuffer.new
 			addr_data.put_udint c.o2t_network_connection_id
 			addr_data.put_udint c.producing_seqno
 			data = ENIP::PackBuffer.new
 			data.put_uint c.producing_seqno
+
 			if c.is_a? ExclusiveOwnerConnection
+				header32bit = c.run ? 1 << 0 : 0
 				data.put_udint header32bit
 				data << c.odata
 				bytes = c.odata.length
