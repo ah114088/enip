@@ -643,16 +643,6 @@ module ENIP
     end
   end
 
-  def ENIP.byte2hex(byte)
-    sprintf("%02X", byte)
-  end
-
-  def ENIP.word2hex(word)
-    low = word & 0xff
-    high = word >> 8
-    ENIP.byte2hex(high) + " " + ENIP.byte2hex(low) # or the other way around?
-  end
-
 	def ENIP.throw_encap_exception(status)
 		case status
     when 1
