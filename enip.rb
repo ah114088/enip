@@ -97,10 +97,6 @@ module ENIP
   SERVICE_FORWARD_OPEN          = 0x54
   SERVICE_GET_CONNECTION_OWNER  = 0x5a
   
-  # constants required for list services command
-	CAP_TCP                    = 0x0020
-	CAP_UDP                    = 0x0100
-
   class CIPException < StandardError
 		attr_reader :extended_status
 		def initialize(msg, extended_status)
@@ -707,29 +703,6 @@ module ENIP
       r.put_epath @connection_path
 			r
     end
-
-		def timeout_multiplier
-			raise CIPException if @connection_timeout_multiplier < 0 || @connection_timeout_multiplier > 7
-			return (4 << @connection_timeout_multiplier)
-		end
-		def unicast= v
-			@t2o_network_connection_params &= 0x9FFF
-			if v == true
-				@t2o_network_connection_params |=  (2 << 13)   # Connection Type = POINT2POINT
-			else	
-				@t2o_network_connection_params |=  (1 << 13)   # Connection Type = MULTICAST
-			end
-		end
-		def unicast?
-			if (@t2o_network_connection_params & 0x6000 ) == (2 << 13) # Connection Type = POINT2POINT
-				true
-			else
-				false
-			end
-		end
-		def osize
-			@o2t_network_connection_params & 0x1F
-		end
   end
 
    class SuccessfulForwardOpen
