@@ -19,8 +19,6 @@ module ENIP
 
   # module global variables
   module_function
-  def block_io; @block_io end
-  def block_io= v; @block_io = v end
   def vendor_id; @vendor_id end
   def vendor_id= v; @vendor_id = v end
   def serial_number; @serial_number end
