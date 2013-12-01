@@ -1028,7 +1028,7 @@ module ENIP
       end
     end
     def close
-      fc_request = ENIP::ForwardCloseRequest.new
+      fc_request = ForwardCloseRequest.new
       fc_request.connection_path = @connection_path
       fc_request.connection_serial_number  = @connection_serial_number
       @session.connection_manager[1].forward_close fc_request
@@ -1136,18 +1136,18 @@ module ENIP
     def recv
       start = Time.now
       udp_packet = @udp_socket.recvfrom_nonblock(1024)
-      msg = ENIP::PackBuffer.new(udp_packet[0])
-      cpf = ENIP::CommonPacket.new
+      msg = PackBuffer.new(udp_packet[0])
+      cpf = CommonPacket.new
       cpf.unpack msg
 
-      addr_data = cpf.get_item_of_type(ENIP::CPF_TYPE_SEQUENCED_ADDRESS)
+      addr_data = cpf.get_item_of_type(CPF_TYPE_SEQUENCED_ADDRESS)
       connid = addr_data.get_udint
       seqno = addr_data.get_udint
 
       self.each { |c|
         next if c.t2o_network_connection_id != connid
         if seqno != c.consuming_seqno 
-          c.idata = cpf.get_item_of_type(ENIP::CPF_TYPE_CONNECTED_DATA)
+          c.idata = cpf.get_item_of_type(CPF_TYPE_CONNECTED_DATA)
           c.consuming_seqno = seqno
         end
         STDERR.puts "recv #{c.idata.length} bytes connid: #{connid} " \
@@ -1160,10 +1160,10 @@ module ENIP
     def send c
       c.producing_seqno += 1
 
-      addr_data = ENIP::PackBuffer.new
+      addr_data = PackBuffer.new
       addr_data.put_udint c.o2t_network_connection_id
       addr_data.put_udint c.producing_seqno
-      data = ENIP::PackBuffer.new
+      data = PackBuffer.new
       data.put_uint c.producing_seqno
 
       if c.is_a? ExclusiveOwnerConnection
@@ -1175,10 +1175,10 @@ module ENIP
         bytes = 0
       end
 
-      cpf = ENIP::CommonPacket.new
-      cpf << [ ENIP::CPF_TYPE_SEQUENCED_ADDRESS, addr_data]
-      cpf << [ ENIP::CPF_TYPE_CONNECTED_DATA, data]
-      @udp_socket.send(cpf.pack, 0, c.ip_addr, ENIP::IMPLICIT_MESSAGING_PORT)
+      cpf = CommonPacket.new
+      cpf << [ CPF_TYPE_SEQUENCED_ADDRESS, addr_data]
+      cpf << [ CPF_TYPE_CONNECTED_DATA, data]
+      @udp_socket.send(cpf.pack, 0, c.ip_addr, IMPLICIT_MESSAGING_PORT)
       STDERR.puts "send #{bytes} bytes for connid: #{c.o2t_network_connection_id} seqno: #{c.producing_seqno}" if @trace
     end
     def interval
