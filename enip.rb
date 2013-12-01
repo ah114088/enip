@@ -1101,7 +1101,7 @@ module ENIP
         sleep 0.5
         retry
       end
-			@mcast = {}
+      @mcast = {}
       @trace = false
     end
     def close
@@ -1111,27 +1111,27 @@ module ENIP
     def << c
       super c
       if ! c.unicast
-				if @mcast[c.multicast_addr].nil?
+        if @mcast[c.multicast_addr].nil?
           # STDERR.puts "setsockopt(ADD,#{c.multicast_addr})"
           ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
           @udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, ip)
-					@mcast[c.multicast_addr] = 1
-				else
-					@mcast[c.multicast_addr] += 1
-				end
+          @mcast[c.multicast_addr] = 1
+        else
+          @mcast[c.multicast_addr] += 1
+        end
       end
     end
     # delete connection
     def delete c
       c.close
       if ! c.unicast
-				@mcast[c.multicast_addr] -= 1
-				if @mcast[c.multicast_addr] == 0
-					# STDERR.puts "setsockopt(DEL,#{c.multicast_addr})"
-					ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
-					@udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_DROP_MEMBERSHIP, ip)
-					@mcast.delete c.multicast_addr
-				end
+        @mcast[c.multicast_addr] -= 1
+        if @mcast[c.multicast_addr] == 0
+          # STDERR.puts "setsockopt(DEL,#{c.multicast_addr})"
+          ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
+          @udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_DROP_MEMBERSHIP, ip)
+          @mcast.delete c.multicast_addr
+        end
       end
       super c
     end
