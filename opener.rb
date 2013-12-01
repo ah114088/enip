@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-require 'enip.rb'
+require 'enip'
 
 #
 # Assemblies of the OpENer sample application

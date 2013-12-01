@@ -10,8 +10,8 @@
 # - Explicit Messaging operations
 # - Implicit Messaging operations (class 1)
 
-require "socket"
-require "ipaddr"
+require 'socket'
+require 'ipaddr'
 
 module ENIP
   IMPLICIT_MESSAGING_PORT = 0x08AE # 2222
