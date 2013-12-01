@@ -414,7 +414,7 @@ module ENIP
 
   class UDPSocket < UDPSocket
     def receive
-      items = Array.new
+      items = []
       start = Time.now
       while Time.now - start < 1.0
         begin
@@ -927,7 +927,7 @@ module ENIP
   class ExclusiveOwnerRequest < ForwardOpenRequest
     def initialize rpi_msec, timeout_multiplier, unicast, isize, osize, iinstance, oinstance, cinstance
       super()
-      @connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
+      @connection_path = [ 0x20, CLASS_ASSEMBLY, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
       @connection_serial_number = ENIP.get_new_connection_serial_number
       @o2t_rpi = rpi_msec * 1000
       @t2o_rpi = rpi_msec * 1000
@@ -955,7 +955,7 @@ module ENIP
   class InputOnlyRequest < ForwardOpenRequest
     def initialize rpi_msec, timeout_multiplier, unicast, isize, iinstance, oinstance, cinstance
       super()
-      @connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
+      @connection_path = [ 0x20, CLASS_ASSEMBLY, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
       @connection_serial_number = ENIP.get_new_connection_serial_number
       @o2t_rpi = rpi_msec * 1000
       @t2o_rpi = rpi_msec * 1000
@@ -982,7 +982,7 @@ module ENIP
   class ListenOnlyRequest < ForwardOpenRequest
     def initialize rpi_msec, timeout_multiplier, isize, iinstance, oinstance, cinstance
       super()
-      @connection_path = [ 0x20, 0x04, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
+      @connection_path = [ 0x20, CLASS_ASSEMBLY, 0x24, cinstance, 0x2C, oinstance, 0x2C, iinstance ]
       @connection_serial_number = ENIP.get_new_connection_serial_number
       @o2t_rpi = rpi_msec * 1000
       @t2o_rpi = rpi_msec * 1000
@@ -1101,7 +1101,7 @@ module ENIP
         sleep 0.5
         retry
       end
-      @mcast = Array.new
+			@mcast = {}
       @trace = false
     end
     def close
@@ -1111,38 +1111,27 @@ module ENIP
     def << c
       super c
       if ! c.unicast
-        new_addr = true
-        @mcast.each { |m|
-          if m[0] == c.multicast_addr
-            new_addr = false
-            m[1] += 1
-          end
-        }
-
-        if new_addr
+				if @mcast[c.multicast_addr].nil?
           # STDERR.puts "setsockopt(ADD,#{c.multicast_addr})"
           ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
           @udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, ip)
-          @mcast << [ c.multicast_addr, 1 ]
-        end
+					@mcast[c.multicast_addr] = 1
+				else
+					@mcast[c.multicast_addr] += 1
+				end
       end
     end
     # delete connection
     def delete c
       c.close
       if ! c.unicast
-        @mcast.each { |m|
-          if m[0] == c.multicast_addr
-            m[1] -= 1
-            if m[1] == 0
-              # STDERR.puts "setsockopt(DEL,#{c.multicast_addr})"
-              ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
-              @udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_DROP_MEMBERSHIP, ip)
-              @mcast.delete [ c.multicast_addr, 0 ]
-              break
-            end
-          end
-        }
+				@mcast[c.multicast_addr] -= 1
+				if @mcast[c.multicast_addr] == 0
+					# STDERR.puts "setsockopt(DEL,#{c.multicast_addr})"
+					ip =  IPAddr.new(c.multicast_addr).hton + IPAddr.new("0.0.0.0").hton
+					@udp_socket.setsockopt(Socket::IPPROTO_IP, Socket::IP_DROP_MEMBERSHIP, ip)
+					@mcast.delete c.multicast_addr
+				end
       end
       super c
     end
